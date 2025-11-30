@@ -1,0 +1,117 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Catalogue de Livres</title>
+    <style>
+        :root {
+            --theme-color: #3498db; /* Bleu par défaut */
+        }
+        
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            margin: 0;
+            padding: 20px;
+            background: linear-gradient(135deg, var(--theme-color) 0%, #2c3e50 100%);
+            min-height: 100vh;
+        }
+        
+        .banner {
+            background: var(--theme-color);
+            color: white;
+            padding: 15px;
+            border-radius: 10px;
+            text-align: center;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        
+        .banner h2 {
+            margin: 0;
+            font-size: 24px;
+        }
+        
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background: white;
+            padding: 30px;
+            border-radius: 15px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.2);
+        }
+        
+        h1 {
+            color: var(--theme-color);
+            text-align: center;
+        }
+        
+        .book-card {
+            border: 2px solid var(--theme-color);
+            padding: 15px;
+            margin: 10px 0;
+            border-radius: 8px;
+            background: #f8f9fa;
+        }
+        
+        .book-card:hover {
+            background: var(--theme-color);
+            color: white;
+            transform: translateY(-2px);
+            transition: all 0.3s;
+        }
+    </style>
+</head>
+<body>
+    
+    <div class="container">
+        <h1>📚 Catalogue de Livres</h1>
+        <p style="text-align: center; color: #666;">
+            Interface servie par Nginx. Données stockées dans MySQL via Python/Flask.
+        </p>
+        
+        <h2>Livres Disponibles</h2>
+        <div id="books"></div>
+    </div>
+
+    <script>
+        // Détecter la couleur du thème depuis les variables d'environnement
+        const urlParams = new URLSearchParams(window.location.search);
+        const theme = urlParams.get('theme') || 'blue';
+        
+        const colors = {
+            blue: '#3498db',
+            green: '#27ae60',
+            red: '#e74c3c',
+            purple: '#9b59b6',
+            orange: '#e67e22'
+        };
+        
+        document.documentElement.style.setProperty('--theme-color', colors[theme] || colors.blue);
+
+        // Charger les livres depuis l'API
+        fetch('http://localhost:5000/api/books')
+            .then(response => response.json())
+            .then(books => {
+                const container = document.getElementById('books');
+                books.forEach(book => {
+                    const card = document.createElement('div');
+                    card.className = 'book-card';
+                    card.innerHTML = `
+                        <h3>${book.title}</h3>
+                        <p><strong>Auteur:</strong> ${book.author}</p>
+                        <p><strong>Année:</strong> ${book.published_year}</p>
+                    `;
+                    container.appendChild(card);
+                });
+            })
+            .catch(error => {
+                document.getElementById('books').innerHTML = `
+                    <div style="color: red; padding: 20px; background: #fee; border-radius: 8px;">
+                        <strong>Erreur:</strong> ${error.message}
+                    </div>
+                `;
+            });
+    </script>
+</body>
+</html>
