@@ -1,1 +1,165 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>📚 Catalogue de Livres (Docker Compose / Terraform)</title>
+    <style>
+        /* Base Styling */
+        body { 
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; 
+            background-color: #f4f6f9; /* Gris très clair */
+            display: flex; 
+            flex-direction: column;
+            align-items: center; 
+            min-height: 100vh; 
+            margin: 0; 
+            padding: 30px 20px;
+        }
+        .header {
+            text-align: center;
+            margin-bottom: 30px;
+            padding: 20px;
+        }
+        h1 { 
+            color: #333; 
+            font-size: 2.5em;
+            margin-bottom: 5px;
+        }
+        .info { 
+            font-size: 0.9em; 
+            color: #6c757d; 
+            margin-top: 5px; 
+        }
 
+        /* Liste et Conteneur */
+        .container { 
+            width: 100%;
+            max-width: 800px; /* Limiter la largeur pour une meilleure lisibilité */
+        }
+        #book-list { 
+            list-style: none; 
+            padding: 0; 
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(350px, 1fr)); /* Affichage en grille adaptative */
+            gap: 20px;
+        }
+        
+        /* Style de la carte de livre */
+        .book-item { 
+            background-color: white; 
+            padding: 20px; 
+            border-radius: 8px; 
+            box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08); 
+            transition: transform 0.2s, box-shadow 0.2s;
+            border-left: 5px solid #007bff; /* Barre latérale bleue pour accentuer */
+        }
+        .book-item:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 6px 15px rgba(0, 0, 0, 0.15);
+        }
+        .book-title { 
+            font-weight: bold; 
+            font-size: 1.2em; 
+            color: #333; 
+            margin-bottom: 5px;
+        }
+        .book-author { 
+            font-size: 0.9em; 
+            color: #5a6268; 
+            margin-top: 5px;
+        }
+        .book-year {
+            display: inline-block;
+            background-color: #e2e6ea;
+            color: #495057;
+            padding: 3px 8px;
+            border-radius: 4px;
+            font-size: 0.8em;
+            font-weight: 600;
+        }
+        
+        /* Message d'erreur et statut */
+        .error-message {
+            background-color: #f8d7da;
+            color: #721c24;
+            padding: 15px;
+            border: 1px solid #f5c6cb;
+            border-radius: 4px;
+            margin-top: 20px;
+            text-align: center;
+        }
+        .status-footer {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 0.9em;
+        }
+        .status-footer a {
+            color: #007bff;
+            text-decoration: none;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="header">
+        <h1>📚 Catalogue de Livres</h1>
+        <p class="info">Interface servie par Nginx. Données stockées dans MySQL via Python/Flask.</p>
+    </div>
+
+    <div class="container">
+        <h2>Livres Disponibles</h2>
+        <ul id="book-list">
+            <li class="book-item">Chargement des livres...</li>
+        </ul>
+    </div>
+
+    <div class="status-footer">
+        Vérifiez le statut de l'API ici : 
+        <a href="http://localhost:5000/status" target="_blank">http://localhost:5000/status</a>
+    </div>
+
+    <script>
+        const API_URL = 'http://localhost:5000/api/books'; 
+
+        async function fetchBooks() {
+            const listElement = document.getElementById('book-list');
+            listElement.innerHTML = '';
+            
+            try {
+                const response = await fetch(API_URL);
+                const books = await response.json();
+                
+                if (books.error) {
+                    throw new Error(books.error);
+                }
+                
+                if (books.length === 0) {
+                    listElement.innerHTML = '<li class="book-item">Aucun livre trouvé !</li>';
+                    return;
+                }
+
+                books.forEach(book => {
+                    const li = document.createElement('li');
+                    li.className = 'book-item';
+                    li.innerHTML = `
+                        <div class="book-title">${book.title}</div>
+                        <div class="book-year">${book.published_year}</div>
+                        <div class="book-author">Auteur : ${book.author}</div>
+                    `;
+                    listElement.appendChild(li);
+                });
+
+            } catch (error) {
+                // Afficher l'erreur avec un style clair
+                listElement.innerHTML = `<li class="error-message">
+                    Erreur: Impossible de charger les livres. (Détails: ${error.message}). 
+                    L'API est-elle fonctionnelle sur localhost:5000?
+                </li>`;
+                console.error("Erreur de récupération des livres:", error);
+            }
+        }
+
+        window.onload = fetchBooks;
+    </script>
+</body>
+</html>
